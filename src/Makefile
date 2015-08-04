@@ -5,7 +5,7 @@ override CFLAGS+=-Wall -O3 #$(shell pkg-config --cflags fftw3)
 
 .PHONY: all clean
 
-all: lvdoenc lvdodec
+all: lvdoenc lvdodec finale
 
 lvdoenc: lvdoenc.o lvdomain.o
 	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS) -I../Include -L../Lib -lfftw3
@@ -16,6 +16,12 @@ lvdodec: lvdodec.o lvdomain.o
 lvdoenc.c: lvdocommon.h
 lvdodec.c: lvdocommon.h
 
+finale:
+	rm -f lvdoenc.o lvdodec.o  lvdomain.o
+	mv lvdoenc.exe ../Bin/lvdoenc.exe
+	mv lvdodec.exe ../Bin/lvdodec.exe
 	
 clean:
-	rm -f lvdoenc lvdodec lvdomain.o lvdoenc.o lvdodec.o
+	rm -f lvdoenc.exe lvdodec.exe lvdomain.o lvdoenc.o lvdodec.o
+
+	

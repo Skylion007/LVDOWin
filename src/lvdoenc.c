@@ -14,23 +14,25 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#define _USE_MATH_DEFINES
 
 #include <fftw3.h>
 #include <math.h>
 #include <stdio.h>
 #include <string.h>
 #include "lvdocommon.h"
-#include <stdlib.h>
 
 static void lvdo_enc_frame(const unsigned char *payload, size_t payloadlen, unsigned char *frame, unsigned int blocksize, unsigned int quantizer, unsigned int qmin, unsigned int qmax, unsigned int width, unsigned int height, int verbose, double *in, double *out, const fftw_plan plan, const unsigned int *zigzag_reverse);
+
+static void* g_malloc(unsigned long gsize){
+	return malloc(gsize);
+}
 
 int lvdo_dispatch(FILE *fi, FILE *fo, unsigned int blocksize, unsigned int quantizer, unsigned int qmin, unsigned int qmax, unsigned int width, unsigned int height, int grayonly, int verbose) {
     size_t payloadleny = width*height*(qmax-qmin)*(8-quantizer)/(blocksize*blocksize*8);
     size_t payloadlen = grayonly ? payloadleny : payloadleny*3/2;
-    unsigned char *payload = malloc(payloadlen);
-    unsigned char *framey = malloc(width*height);
-    unsigned char *frameuv = malloc(width*height/2);
+    unsigned char *payload = g_malloc(payloadlen);
+    unsigned char *framey = g_malloc(width*height);
+    unsigned char *frameuv = g_malloc(width*height/2);
     unsigned int *zigzag_reverse = new_zigzag_reverse(blocksize);
     double *in = fftw_malloc(blocksize*blocksize*sizeof (double));
     double *out = fftw_malloc(blocksize*blocksize*sizeof (double));
@@ -39,9 +41,9 @@ int lvdo_dispatch(FILE *fi, FILE *fo, unsigned int blocksize, unsigned int quant
     if(grayonly)
         memset(frameuv, 0x80, width*height/2);
     if(payloadlen != 0)
-        printf("lvdo: [info] bytes per frame: %lu\n", (unsigned long) payloadlen);
+        g_printerr("lvdo: [info] bytes per frame: %lu\n", (unsigned long) payloadlen);
     else {
-        printf("lvdo: [error] bytes per frame: 0\n");
+        g_printerr("lvdo: [error] bytes per frame: 0\n");
         return 1;
     }
     while(!feof(fi)) {
@@ -95,4 +97,3 @@ static void lvdo_enc_frame(const unsigned char *payload, size_t payloadlen, unsi
                     frame[(blocki*blocksize+pixeli)*width+(blockj*blocksize+pixelj)] = prevent_yuv_overflow(round(out[pixeli*blocksize+pixelj]));
         }
 }
-

@@ -14,10 +14,8 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#define _USE_MATH_DEFINES
 
 #include <fftw3.h>
-#include <stdlib.h>
 #include <math.h>
 #include <stdio.h>
 #include <string.h>
@@ -25,10 +23,15 @@
 
 static void lvdo_dec_frame(unsigned char *payload, size_t payloadlen, const unsigned char *frame, unsigned int blocksize, unsigned int quantizer, unsigned int qmin, unsigned int qmax, unsigned int width, unsigned int height, int verbose, double *in, double *out, const fftw_plan plan, const unsigned int *zigzag_reverse);
 
+static void* g_malloc(unsigned long gsize){
+	return malloc(gsize);
+}
+
+
 int lvdo_dispatch(FILE *fi, FILE *fo, unsigned int blocksize, unsigned int quantizer, unsigned int qmin, unsigned int qmax, unsigned int width, unsigned int height, int grayonly, int verbose) {
     size_t payloadlen = width*height*(qmax-qmin)*(8-quantizer)/(blocksize*blocksize*8);
-    unsigned char *payload = malloc(payloadlen);
-    unsigned char *framey = malloc(width*height*3/2);
+    unsigned char *payload = g_malloc(payloadlen);
+    unsigned char *framey = g_malloc(width*height*3/2);
     unsigned char *frameuv = framey+width*height;
     unsigned int *zigzag_reverse = new_zigzag_reverse(blocksize);
     double *in = fftw_malloc(blocksize*blocksize*sizeof (double));
