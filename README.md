@@ -15,7 +15,7 @@ sites. The receiver downloads the video and is able to extract the file using
 the same parameter you encode it.
 
 
-Usage
+Console Usage
 -----
 
 This is a possible combination of parameters:
@@ -34,9 +34,25 @@ ffmpeg -i public.mkv -r 1 -f rawvideo - | lvdodec -s 640x480 -q 6 --qmin 1 --qma
 ```
 
 
+GUI Usage
+------
+# Dependencies
+Ensure you have all dependencies. This uses a Python GUI requiring PySide. Python 3 recommended. 
+```bash
+pip install PySide
+```
+
+# Encode
+Simply press convert binary file to video. Your video will be saved as output.mkv in the top level directory.
+
+# Decode
+Simply press convert video to binary file. Your file will be saved at file specified under "Decoded Output File."
+
+
 Issues
 ------
-During the port to Windows, arguement parsing broke. For now, I just have it hard coded.
+During the port to Windows, arguement parsing broke. For now, I just have it hard coded. 
+Until this is fixed, no parameters may be changed for the encoding or decoding process.
 
 Some parameter combination causes undecodable file.
 
