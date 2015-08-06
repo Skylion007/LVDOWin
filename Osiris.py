@@ -203,11 +203,12 @@ class OsirisGUI(QtGui.QWidget):
         if path is None:
             return
         
-        valid_filetypes = ['mp4', 'flv', 'avi', 'wmv', 'mkv']        
+        valid_filetypes = ['.mp4', '.flv', '.avi', '.wmv', '.mkv']
         
         filename, file_extension = os.path.splitext(path)
         
         if file_extension not in valid_filetypes:
+            print(file_extension)
             self.popupMessage('File: The input file does not seem to be a video file')
             return 
             
