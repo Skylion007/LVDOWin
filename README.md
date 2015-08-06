@@ -34,18 +34,21 @@ ffmpeg -i public.mkv -r 1 -f rawvideo - | lvdodec -s 640x480 -q 6 --qmin 1 --qma
 ```
 
 
-GUI Usage
+# GUI Usage
+=====
+Dependencies
 ------
-# Dependencies
 Ensure you have all dependencies. This uses a Python GUI requiring PySide. Python 3 recommended. 
 ```bash
 pip install PySide
 ```
 
-# Encode
+Encode
+------
 Simply press convert binary file to video. Your video will be saved as output.mkv in the top level directory.
 
-# Decode
+Decode
+------
 Simply press convert video to binary file. Your file will be saved at file specified under "Decoded Output File."
 
 

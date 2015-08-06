@@ -32,41 +32,120 @@ class OsirisGUI(QtGui.QWidget):
  
         encodeFileBtn.setToolTip("Saves the file as output.mkv")
         decodeFileBtn.setToolTip("Decodes the file at the specified")
- 
-        uploadLayout = QtGui.QHBoxLayout()
+        
+        source_component = QtGui.QVBoxLayout()
+        
+        sourceLabel = QtGui.QLabel("Input File:")
+        sourceLabel.setToolTip("Specifies what file you want to convert")
+        sourceLabel.setAlignment(Qt.AlignCenter| Qt.AlignCenter)
+                
+        sourceLayout = QtGui.QHBoxLayout()
         #TODO Add a wrapper the preserves the original filename
-        uploadLabel = QtGui.QLabel("Decoded Output File")
-        uploadLabel.setToolTip("Specifies where you want to save the file")
-        uploadLabel.setAlignment(Qt.AlignCenter| Qt.AlignCenter)
-        saveBtn = QtGui.QPushButton("...")
-        self.saveText = QtGui.QLineEdit(".." + os.path.sep + "message.txt")
-        saveBtn.clicked.connect(self.setSaveText)
-        uploadLayout.addWidget(self.saveText)
-        uploadLayout.addWidget(saveBtn)
+        openBtn = QtGui.QPushButton("...")
+        width = openBtn.fontMetrics().boundingRect(openBtn.text()).width() + 14
+        openBtn.setMaximumWidth(width)
+        self.sourcePath = QtGui.QLineEdit(".." + os.path.sep + "message.txt")
+        self.sourcePath.setEnabled(False)        
+        openBtn.clicked.connect(self.setSourcePath)
+        sourceLayout.addWidget(sourceLabel)        
+        sourceLayout.addWidget(self.sourcePath)
+        sourceLayout.addWidget(openBtn)
+        
+        #source_component.addWidget(sourceLabel)
+        source_component.addLayout(sourceLayout)
+        
+        #source_box = self.BorderBox(source_component)
+ 
+        destination_component = QtGui.QVBoxLayout()
+
+        destinationLabel = QtGui.QLabel("Output File")
+        destinationLabel.setToolTip("Specifies where you want to save the file")
+        destinationLabel.setAlignment(Qt.AlignCenter| Qt.AlignCenter)
+        
+        destinationLayout = QtGui.QHBoxLayout()
+        #TODO Add a wrapper the preserves the original filename
+        saveBtn = QtGui.QPushButton('...')
+        width = saveBtn.fontMetrics().boundingRect(saveBtn.text()).width() + 14
+        saveBtn.setMaximumWidth(width)
+        self.destinationPath = QtGui.QLineEdit(".." + os.path.sep + "output.mkv")
+        self.destinationPath.setEnabled(False)
+        saveBtn.clicked.connect(self.setDestinationPath)
+        destinationLayout.addWidget(destinationLabel)        
+        destinationLayout.addWidget(self.destinationPath)
+        destinationLayout.addWidget(saveBtn)
+
+        #destination_component.addWidget(destinationLabel)
+        destination_component.addLayout(destinationLayout)
+
+        #destination_box = self.BorderBox(destination_component)
  
         self.te = QtGui.QTextEdit()
         self.te.setEnabled(False)
  
+        buttonLayout = QtGui.QHBoxLayout()
+        buttonLayout.addWidget(encodeFileBtn)
+        buttonLayout.addWidget(decodeFileBtn)       
+        
+        io_component = QtGui.QVBoxLayout()
+        io_component.addLayout(source_component)
+        io_component.addLayout(destination_component)
+        io_box = self.BorderBox(io_component)
+    
+ 
         # layout widgets
         layout = QtGui.QVBoxLayout()
         layout.addWidget(self.label)
-        layout.addWidget(encodeFileBtn)
-        layout.addWidget(decodeFileBtn)
-        layout.addWidget(uploadLabel)        
-        layout.addLayout(uploadLayout)
+        #layout.addWidget(self.HLine())
+        #layout.addLayout(source_component)
+        #layout.addWidget(source_box)        
+        #layout.addWidget(self.HLine())
+        #layout.addLayout(destination_component)
+        #layout.addWidget(destination_box)
+        layout.addWidget(io_box)        
         layout.addWidget(self.te)
+        
+        layout.addLayout(buttonLayout)
         self.setLayout(layout)
  
+        self.adjustSize() 
  
         self.move(QtGui.QDesktopWidget().availableGeometry().center() 
                     - self.frameGeometry().center())
 
-
         self.setWindowTitle("LVDOWin - Osiris Backup")
             # ...
-    def setSaveText(self):
+    def setSourcePath(self):
+        import re
+        path = self.exec_file_open_dialog()
+        path = re.sub('(.)', r'\1', path)
+        self.sourcePath.setText(str(path))
+        
+    def setDestinationPath(self):
+        import re
         path = self.exec_file_save_dialog()
-        self.saveText.setText(str(path))
+        path = re.sub('(.)', r'\1', path)
+        self.destinationPath.setText(str(path))
+
+    def BorderBox(self, layout):
+        from PySide.QtGui import QFrame
+        toto = QFrame()
+        toto.setLayout(layout)
+        toto.setFrameShape(QFrame.Box)
+        toto.setFrameShadow(QFrame.Sunken)
+        return toto        
+        
+    def popupMessage(self, message):
+        from PySide.QtGui import QMessageBox        
+        msgBox = QMessageBox()
+        msgBox.setText(message)
+        msgBox.exec_()
+
+    def HLine(self):        
+        from PySide.QtGui import QFrame
+        toto = QFrame()
+        toto.setFrameShape(QFrame.HLine)
+        toto.setFrameShadow(QFrame.Sunken)
+        return toto        
         
     def normalOutputWritten(self, text):
         """Append text to the QTextEdit."""
@@ -83,19 +162,24 @@ class OsirisGUI(QtGui.QWidget):
         Opens a file dialog and encodes the file as output.mkv
         """
         
-        path = self.exec_file_open_dialog()
-        path = path.replace("/", os.path.sep) 
+        path = self.sourcePath.text()
         #This is necessary since we are using the shell.      
         
         if path is None:
             return
         
+        #import re
+
+        #path = re.sub('(.)', r'^\1', path)
+        destination_text = self.destinationPath.text()#re.sub('(.)', r'^\1', self.destinationPath.text())
+        
         #TODO Reimpliment with shell off when you find an alternative for type
         cmd = 'type "%s"' % path
         cmd += ' | lvdoenc -s 640x480 -q 6 --qmin 1 --qmax 4 | '
         cmd += 'x264 --input-res 640x480 --fps 1 --profile high --level 5.1 --tune stillimage '
-        cmd += '--crf 22 --colormatrix bt709 --me dia --merange 0 -o ..//output.mkv -'
-       
+        cmd += '--crf 22 --colormatrix bt709 --me dia '
+        cmd += '--merange 0 -o "%s" -' % destination_text
+
         bin_directory = os.getcwd() + os.path.sep +'bin'
        
         p = Popen(cmd, stdout = PIPE, 
@@ -113,20 +197,26 @@ class OsirisGUI(QtGui.QWidget):
         Opens a file dialog and decodes the file as message.txt
         """
         
-        path = self.exec_file_open_dialog()
-        path = path.replace("/", os.path.sep) 
+        path = self.sourcePath.text()
         #This is necessary since we are using the shell.      
         
         if path is None:
             return
         
+        valid_filetypes = ['mp4', 'flv', 'avi', 'wmv', 'mkv']        
+        
+        filename, file_extension = os.path.splitext(path)
+        
+        if file_extension not in valid_filetypes:
+            self.popupMessage('File: The input file does not seem to be a video file')
+            return 
+            
         #TODO Reimpliment with shell off when you find an alternative for type
         cmd = 'ffmpeg -i "%s"' % path
         cmd += ' -r 1 -f rawvideo - | lvdodec -s 640x480 -q 6 --qmin 1 --qmax 4 > '
         #cmd = cmd.split()
-        cmd = cmd + '"' + self.saveText.text() + '"'
+        cmd = cmd + '"' + self.destinationPath.text() + '"'
         bin_directory = os.getcwd() + os.path.sep +'bin'
-        print(cmd)
        
         p = Popen(cmd, stdout = PIPE, 
                 stderr = STDOUT, shell = True, cwd=bin_directory, 
@@ -142,6 +232,7 @@ class OsirisGUI(QtGui.QWidget):
     def exec_file_open_dialog(self):
         path, _ = QtGui.QFileDialog.getOpenFileName(self, "Open File", os.getcwd())
         if path:    
+            path = path = path.replace("/", os.path.sep) 
             return path
         else:
             return None
@@ -149,8 +240,8 @@ class OsirisGUI(QtGui.QWidget):
     def exec_file_save_dialog(self):
         path, _ = QtGui.QFileDialog.getSaveFileName(self, "Save file", "")
         print(path)        
-        print(dir(path))
-        if path:    
+        if path:             
+            path = path = path.replace("/", os.path.sep) 
             return path
         else:
             return None

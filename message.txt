@@ -1,0 +1,7 @@
+Hello world!
+
+This is an example of a file that you could encode.
+
+It's a really tiny files so it should not make a very long video. Maybe just one frame.
+
+However, this file should serve as an example of how to use this tool.
