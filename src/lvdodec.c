@@ -20,6 +20,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "lvdocommon.h"
+#include <stdlib.h>
 
 static void lvdo_dec_frame(unsigned char *payload, size_t payloadlen, const unsigned char *frame, unsigned int blocksize, unsigned int quantizer, unsigned int qmin, unsigned int qmax, unsigned int width, unsigned int height, int verbose, double *in, double *out, const fftw_plan plan, const unsigned int *zigzag_reverse);
 

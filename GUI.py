@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-Spyder Editor
-
-This is a temporary script file.
+This is a sample GUI for LVDOWin written by Aaron Gokaslan.
+The GUI just feeds a very simplistic set of parameters to and from video.
 """
 from PySide import QtGui
 from PySide.QtCore import Qt
@@ -19,7 +18,7 @@ class OsirisGUI(QtGui.QWidget):
         # super(DialogDemo, self).__init__()
         QtGui.QWidget.__init__(self)
  
-        self.label = QtGui.QLabel("Welcome to Osiris Ninja Backup!")
+        self.label = QtGui.QLabel("Welcome to LVDOWin!")
         self.label.setAlignment(Qt.AlignCenter| Qt.AlignCenter)
  
         # create the buttons
@@ -112,17 +111,25 @@ class OsirisGUI(QtGui.QWidget):
         self.move(QtGui.QDesktopWidget().availableGeometry().center() 
                     - self.frameGeometry().center())
 
-        self.setWindowTitle("LVDOWin - Osiris Backup")
+        self.setWindowTitle("LVDOWin - GUI")
             # ...
+
+
+ 
+
     def setSourcePath(self):
         import re
         path = self.exec_file_open_dialog()
+        if path is None:
+            return
         path = re.sub('(.)', r'\1', path)
         self.sourcePath.setText(str(path))
         
     def setDestinationPath(self):
         import re
         path = self.exec_file_save_dialog()
+        if path is None:
+            return
         path = re.sub('(.)', r'\1', path)
         self.destinationPath.setText(str(path))
 
@@ -137,6 +144,7 @@ class OsirisGUI(QtGui.QWidget):
     def popupMessage(self, message):
         from PySide.QtGui import QMessageBox        
         msgBox = QMessageBox()
+        msgBox.setWindowTitle('Warning!!!')
         msgBox.setText(message)
         msgBox.exec_()
 
@@ -168,10 +176,7 @@ class OsirisGUI(QtGui.QWidget):
         if path is None:
             return
         
-        #import re
-
-        #path = re.sub('(.)', r'^\1', path)
-        destination_text = self.destinationPath.text()#re.sub('(.)', r'^\1', self.destinationPath.text())
+        destination_text = self.destinationPath.text()
         
         #TODO Reimpliment with shell off when you find an alternative for type
         cmd = 'type "%s"' % path
@@ -191,7 +196,9 @@ class OsirisGUI(QtGui.QWidget):
             self.normalOutputWritten(str(line))               
             self.te.repaint()
             if not line: break
-    
+ 
+
+   
     def decodeFile(self):
         """
         Opens a file dialog and decodes the file as message.txt
@@ -202,16 +209,11 @@ class OsirisGUI(QtGui.QWidget):
         
         if path is None:
             return
-        
-        valid_filetypes = ['.mp4', '.flv', '.avi', '.wmv', '.mkv']
-        
-        filename, file_extension = os.path.splitext(path)
-        
-        if file_extension not in valid_filetypes:
-            print(file_extension)
+                
+        if not isVideo(path):
             self.popupMessage('File: The input file does not seem to be a video file')
             return 
-            
+
         #TODO Reimpliment with shell off when you find an alternative for type
         cmd = 'ffmpeg -i "%s"' % path
         cmd += ' -r 1 -f rawvideo - | lvdodec -s 640x480 -q 6 --qmin 1 --qmax 4 > '
@@ -259,6 +261,12 @@ class OsirisGUI(QtGui.QWidget):
                                                                os.getcwd(),
                                                                flags)
         self.label.setText(d)
+ 
+def isVideo(filename):
+    filename, file_extension = os.path.splitext(filename)        
+    valid_filetypes = ['.mp4', '.flv', '.avi', '.wmv', '.mkv']
+    return file_extension is valid_filetypes
+        
  
 #----------------------------------------------------------------------
 if __name__ == "__main__":

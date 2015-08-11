@@ -18,6 +18,7 @@
 #include <stdio.h>
 #include <windows.h>
 #include "lvdocommon.h"
+#include <stdlib.h>
 
 typedef int bool;
 #define true 1

@@ -18,7 +18,7 @@
 #ifndef _LVDOCOMMON_H
 #define _LVDOCOMMON_H
 
-
+#include <stdlib.h>
 
 static inline void* g_malloc_n (unsigned int n_blocks, unsigned int n_block_bytes)
 {
