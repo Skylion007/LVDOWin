@@ -178,10 +178,11 @@ class OsirisGUI(QtGui.QWidget):
         
         destination_text = self.destinationPath.text()
         
+        input_res = '640x480'        
         #TODO Reimpliment with shell off when you find an alternative for type
         cmd = 'type "%s"' % path
-        cmd += ' | lvdoenc -s 640x480 -q 6 --qmin 1 --qmax 4 | '
-        cmd += 'x264 --input-res 640x480 --fps 1 --profile high --level 5.1 --tune stillimage '
+        cmd += ' | lvdoenc -s ' + input_res + ' -q 6 --qmin 1 --qmax 4 | '
+        cmd += 'x264 --input-res ' + input_res + ' --fps 1 --profile high --level 5.1 --tune stillimage '
         cmd += '--crf 22 --colormatrix bt709 --me dia '
         cmd += '--merange 0 -o "%s" -' % destination_text
 
@@ -210,13 +211,15 @@ class OsirisGUI(QtGui.QWidget):
         if path is None:
             return
                 
+        print("Should attend: " + str(not isVideo(path)))
         if not isVideo(path):
             self.popupMessage('File: The input file does not seem to be a video file')
             return 
 
         #TODO Reimpliment with shell off when you find an alternative for type
+        input_res = '640x480'
         cmd = 'ffmpeg -i "%s"' % path
-        cmd += ' -r 1 -f rawvideo - | lvdodec -s 640x480 -q 6 --qmin 1 --qmax 4 > '
+        cmd += ' -r 1 -f rawvideo - | lvdodec -s ' + input_res + ' -q 6 --qmin 1 --qmax 4 > '
         #cmd = cmd.split()
         cmd = cmd + '"' + self.destinationPath.text() + '"'
         bin_directory = os.getcwd() + os.path.sep +'bin'
@@ -263,9 +266,9 @@ class OsirisGUI(QtGui.QWidget):
         self.label.setText(d)
  
 def isVideo(filename):
-    filename, file_extension = os.path.splitext(filename)        
+    filename, file_extension = os.path.splitext(filename)
     valid_filetypes = ['.mp4', '.flv', '.avi', '.wmv', '.mkv']
-    return file_extension is valid_filetypes
+    return file_extension in valid_filetypes
         
  
 #----------------------------------------------------------------------

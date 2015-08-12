@@ -87,6 +87,7 @@ static unsigned int floor_sqrt(unsigned int x) {
 */
 
 static unsigned int ceil_sqrt(unsigned int x) __attribute__((__const__));
+
 static unsigned int ceil_sqrt(unsigned int x) {
     unsigned int sq = 0;
     unsigned int k = 0;
