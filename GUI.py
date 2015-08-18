@@ -4,7 +4,7 @@ This is a sample GUI for LVDOWin written by Aaron Gokaslan.
 The GUI just feeds a very simplistic set of parameters to and from video.
 """
 from PySide import QtGui
-from PySide.QtCore import Qt
+from PySide.QtCore import Qt, QRegExp
 from subprocess import Popen, PIPE, STDOUT
 import os
 
@@ -21,6 +21,9 @@ class OsirisGUI(QtGui.QWidget):
         self.label = QtGui.QLabel("Welcome to LVDOWin!")
         self.label.setAlignment(Qt.AlignCenter| Qt.AlignCenter)
  
+        self.te = QtGui.QTextEdit()
+        self.te.setEnabled(False)
+   
         # create the buttons
         encodeFileBtn = QtGui.QPushButton("Convert file to video")
         decodeFileBtn = QtGui.QPushButton("Convert a video to a file")
@@ -31,20 +34,43 @@ class OsirisGUI(QtGui.QWidget):
  
         encodeFileBtn.setToolTip("Saves the file as output.mkv")
         decodeFileBtn.setToolTip("Decodes the file at the specified")
+
+        buttonLayout = QtGui.QHBoxLayout()
+        buttonLayout.addWidget(encodeFileBtn)
+        buttonLayout.addWidget(decodeFileBtn)       
+             
+        io_box = self.createIOBox()        
+        settings_box = self.createSettings()
+
+        layout = QtGui.QVBoxLayout()
+        layout.addWidget(self.label)
+        layout.addWidget(io_box)        
+        #layout.addWidget(settings_box)
+        layout.addWidget(self.te)
         
+        layout.addLayout(buttonLayout)
+        self.setLayout(layout)
+ 
+        self.adjustSize() 
+ 
+        self.move(QtGui.QDesktopWidget().availableGeometry().center() 
+                    - self.frameGeometry().center())
+
+        self.setWindowTitle("LVDOWin - GUI")
+    
+          # ...
+    def createIOBox(self):        
         source_component = QtGui.QVBoxLayout()
-        
         sourceLabel = QtGui.QLabel("Input File:")
         sourceLabel.setToolTip("Specifies what file you want to convert")
         sourceLabel.setAlignment(Qt.AlignCenter| Qt.AlignCenter)
-                
+
         sourceLayout = QtGui.QHBoxLayout()
-        #TODO Add a wrapper the preserves the original filename
         openBtn = QtGui.QPushButton("...")
         width = openBtn.fontMetrics().boundingRect(openBtn.text()).width() + 14
         openBtn.setMaximumWidth(width)
         self.sourcePath = QtGui.QLineEdit(".." + os.path.sep + "message.txt")
-        self.sourcePath.setEnabled(False)        
+        self.sourcePath.setEnabled(False)
         openBtn.clicked.connect(self.setSourcePath)
         sourceLayout.addWidget(sourceLabel)        
         sourceLayout.addWidget(self.sourcePath)
@@ -57,11 +83,11 @@ class OsirisGUI(QtGui.QWidget):
  
         destination_component = QtGui.QVBoxLayout()
 
-        destinationLabel = QtGui.QLabel("Output File")
+        destinationLabel = QtGui.QLabel("Output File:")
         destinationLabel.setToolTip("Specifies where you want to save the file")
         destinationLabel.setAlignment(Qt.AlignCenter| Qt.AlignCenter)
         
-        destinationLayout = QtGui.QHBoxLayout()
+        destination_layout = QtGui.QHBoxLayout()
         #TODO Add a wrapper the preserves the original filename
         saveBtn = QtGui.QPushButton('...')
         width = saveBtn.fontMetrics().boundingRect(saveBtn.text()).width() + 14
@@ -69,53 +95,35 @@ class OsirisGUI(QtGui.QWidget):
         self.destinationPath = QtGui.QLineEdit(".." + os.path.sep + "output.mkv")
         self.destinationPath.setEnabled(False)
         saveBtn.clicked.connect(self.setDestinationPath)
-        destinationLayout.addWidget(destinationLabel)        
-        destinationLayout.addWidget(self.destinationPath)
-        destinationLayout.addWidget(saveBtn)
+        destination_layout.addWidget(destinationLabel)        
+        destination_layout.addWidget(self.destinationPath)
+        destination_layout.addWidget(saveBtn)
 
         #destination_component.addWidget(destinationLabel)
-        destination_component.addLayout(destinationLayout)
+        destination_component.addLayout(destination_layout)
 
         #destination_box = self.BorderBox(destination_component)
- 
-        self.te = QtGui.QTextEdit()
-        self.te.setEnabled(False)
- 
-        buttonLayout = QtGui.QHBoxLayout()
-        buttonLayout.addWidget(encodeFileBtn)
-        buttonLayout.addWidget(decodeFileBtn)       
-        
+  
         io_component = QtGui.QVBoxLayout()
         io_component.addLayout(source_component)
         io_component.addLayout(destination_component)
         io_box = self.BorderBox(io_component)
-    
- 
-        # layout widgets
-        layout = QtGui.QVBoxLayout()
-        layout.addWidget(self.label)
-        #layout.addWidget(self.HLine())
-        #layout.addLayout(source_component)
-        #layout.addWidget(source_box)        
-        #layout.addWidget(self.HLine())
-        #layout.addLayout(destination_component)
-        #layout.addWidget(destination_box)
-        layout.addWidget(io_box)        
-        layout.addWidget(self.te)
+        return io_box
+
+
+    def createSettings(self):
+        screen_res_box = QtGui.QHBoxLayout()
+        screen_res_box.addWidget(QtGui.QLabel('Video resolution'))
         
-        layout.addLayout(buttonLayout)
-        self.setLayout(layout)
- 
-        self.adjustSize() 
- 
-        self.move(QtGui.QDesktopWidget().availableGeometry().center() 
-                    - self.frameGeometry().center())
-
-        self.setWindowTitle("LVDOWin - GUI")
-            # ...
-
-
- 
+        self.screenResolution = QtGui.QLineEdit('640x480')
+        self.screenResolution.setValidator(
+            QtGui.QRegExpValidator(QRegExp('[0-9]{3,}x[0-9]{3,}'),
+                                   self.screenResolution))
+        self.screenResolution.textChanged.connect(self.check_state)
+        self.screenResolution.textChanged.emit(self.screenResolution.text())
+        self.screenResolution.setEnabled(False)
+        screen_res_box.addWidget(self.screenResolution)
+        return self.BorderBox(screen_res_box)
 
     def setSourcePath(self):
         import re
@@ -211,7 +219,6 @@ class OsirisGUI(QtGui.QWidget):
         if path is None:
             return
                 
-        print("Should attend: " + str(not isVideo(path)))
         if not isVideo(path):
             self.popupMessage('File: The input file does not seem to be a video file')
             return 
@@ -229,7 +236,7 @@ class OsirisGUI(QtGui.QWidget):
                 bufsize = 0, universal_newlines=True)
         while True:
             line = p.stdout.readline()
-            print(line.rstrip())
+#            print(line.rstrip())
             self.normalOutputWritten(str(line))               
             self.te.repaint()
             if not line: break
@@ -264,6 +271,19 @@ class OsirisGUI(QtGui.QWidget):
                                                                os.getcwd(),
                                                                flags)
         self.label.setText(d)
+        
+    def check_state(self, *args, **kwargs):
+        sender = self.sender()
+        validator = sender.validator()
+        state = validator.validate(sender.text(), 0)[0]
+        if state == QtGui.QValidator.Acceptable:
+            color = '#c4df9b' # green
+        elif state == QtGui.QValidator.Intermediate:
+            color = '#fff79a' # yellow
+        else:
+            color = '#f6989d' # red
+        sender.setStyleSheet('QLineEdit { background-color: %s }' % color)
+
  
 def isVideo(filename):
     filename, file_extension = os.path.splitext(filename)
